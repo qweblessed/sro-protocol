@@ -9,6 +9,8 @@ export default function Swap() {
   const [selectedTokenAmount, setSelectedTokenAmount] = useState<number>(0);
   const [topLiquidTokens, setTopLiquidTokens] = useState<Token[]>();
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [selectedToken, setSelectedToken] = useState<string>();
+
   const { loading, error, data } = useQuery(PAIRS_QUERY)
 
   const getTopLiquidTokens = async () => {
@@ -16,10 +18,11 @@ export default function Swap() {
       const formattedTokens = data.pairs.map((item:TokensResponse) => {
         return item.token0
       })
+      setSelectedToken(formattedTokens[0])
       setTopLiquidTokens(formattedTokens);
     }
   };
-
+  
   useEffect(() => {
     getTopLiquidTokens();
   }, [loading,error]);
@@ -53,11 +56,11 @@ export default function Swap() {
                   </div>
                 </div>
                 <div className="flex w-1/4">
-                  <select className="flex justify-between w-full h-min items-center bg-customSkyBlue rounded-2xl text-lg cursor-pointer p-2">
+                  <select className="flex justify-between w-full h-min items-center bg-customSkyBlue rounded-2xl text-lg cursor-pointer p-2" onChange={(e) => setSelectedToken(e.target.value)}>
                     {topLiquidTokens?.map((token) => {
                       return (
-                        <option value="" key={token.id}>
-                          {token.symbol}
+                        <option value={token.id} key={token.id} >
+                          <p >{token.symbol}</p>
                         </option>
                       );
                     })}
