@@ -1,4 +1,3 @@
-# Dapp template:(NextJs/Wagmi/Ethers/RainbowKit/Tailwind)
 # Setup projext steps:
 # step 1: `yarn`
 # step 2: `yarn run dev`
