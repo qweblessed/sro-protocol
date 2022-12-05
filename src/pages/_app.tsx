@@ -1,7 +1,6 @@
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import "@rainbow-me/rainbowkit/styles.css";
-
 import {
   getDefaultWallets,
   midnightTheme,
@@ -12,24 +11,23 @@ import {
   chain,
   configureChains,
   createClient,
-  defaultChains,
   WagmiConfig,
 } from "wagmi";
-import { infuraProvider } from 'wagmi/providers/infura';
+import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
 import { ThemeProvider } from "next-theme";
-import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
-
+import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
+import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 import Layout from "../components/Layout";
 
 const { chains, provider } = configureChains(
   [chain.goerli],
   [
-    infuraProvider({ apiKey: '0f93404456e04fda97678c9174f03f69', priority: 0 }),
+    infuraProvider({ apiKey: "0f93404456e04fda97678c9174f03f69", priority: 0 }),
     publicProvider({ priority: 1 }),
     jsonRpcProvider({
       priority: 0,
-      rpc: (chain: Chain) => {       
+      rpc: (chain: Chain) => {
         return { http: chain.rpcUrls.default };
       },
     }),
@@ -47,26 +45,27 @@ const wagmiClient = createClient({
   provider,
 });
 
+export const apolloClient = new ApolloClient({
+  uri: `https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2`,
+  cache: new InMemoryCache(),
+});
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider>
-      <WagmiConfig client={wagmiClient}>
-        <RainbowKitProvider
-          chains={chains}
-          theme={midnightTheme({
-            accentColor: "#fffff",
-            accentColorForeground: "fffff",
-            borderRadius: "medium",
-            fontStack: "system",
-            overlayBlur: "small",
-          })}
-          modalSize="compact"
-        >
-          <Layout>
-            <Component {...pageProps} />{" "}
-          </Layout>
-        </RainbowKitProvider>
-      </WagmiConfig>
+      <ApolloProvider client={apolloClient}>
+        <WagmiConfig client={wagmiClient}>
+          <RainbowKitProvider
+            chains={chains}
+            theme={midnightTheme()}
+            modalSize="compact"
+          >
+            <Layout>
+              <Component {...pageProps} />{" "}
+            </Layout>
+          </RainbowKitProvider>
+        </WagmiConfig>
+      </ApolloProvider>
     </ThemeProvider>
   );
 }

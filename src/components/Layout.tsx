@@ -4,10 +4,10 @@ import Header from "./header";
 const Layout = ({ children }: any) => {
 
   return (
-    <div className="bg-gradient-to-t  from-customDeepBlue via-customSkyBlue to-customDeepBlue">
+    <div className="bg-gradient-to-t  from-customDeepBlue via-customSkyBlue to-customDeepBlue h-screen">
       <Header />
       {children}
-      <Footer />
+ 
     </div>
   );
 };
