@@ -3,15 +3,16 @@ import { useEffect, useState } from "react";
 import { Token, TokensResponse } from "../../interfaces/ISwap";
 import { PAIRS_QUERY } from "../api/thegraph/queries";
 import SelectTokensModal from "../../components/SelectTokensModal";
-
+import { useContractWrite, useNetwork, usePrepareContractWrite } from "wagmi";
+import { testContract } from "../../lib/test-contract-config";
 
 export default function Swap() {
-  const [selectedTokenAmount, setSelectedTokenAmount] = useState<number>(0);
-  const [topLiquidTokens, setTopLiquidTokens] = useState<Token[]>();
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [selectedToken, setSelectedToken] = useState<string>();
-
   const { loading, error, data } = useQuery(PAIRS_QUERY)
+  const { chain } = useNetwork();
+  const [selectedTokenAmount, setSelectedTokenAmount] = useState<number>(0);
+  const [displayedTokens, setDisplayedTokens] = useState<Token[] | undefined>();
+  const [selectedToken, setSelectedToken] = useState<string>();
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   const getTopLiquidTokens = async () => {
     if(!loading && !error){
@@ -19,19 +20,27 @@ export default function Swap() {
         return item.token0
       })
       setSelectedToken(formattedTokens[0])
-      setTopLiquidTokens(formattedTokens);
+      setDisplayedTokens(formattedTokens);
     }
   };
+
   
   useEffect(() => {
     getTopLiquidTokens();
-  }, [loading,error]);
-
+  }, [loading,error]); 
+  
   return (
     <div className="flex justify-center mt-2 mb-2">
+
       <div className="items-center w-[35%] p-5 h-[40rem] bg-customDeepBlue rounded-2xl shadow-sm shadow-customLightBlue mt-2 ">
         {showModal ? 
-          <SelectTokensModal tokens={topLiquidTokens} setShowModal={setShowModal}/> : null}
+          <SelectTokensModal 
+            tokens={displayedTokens} 
+            setShowModal={setShowModal} 
+            setSelectedToken={setSelectedToken} 
+            selectedToken={selectedToken}
+            setDisplayedTokens={setDisplayedTokens} /> 
+          : null}
         <h2 className="text-center text-customRed text-3xl font-semibold">
           ERC20 To ETH Swap
         </h2>
@@ -53,17 +62,22 @@ export default function Swap() {
                   <div className="w-full h-min text-center bg-customSkyBlue rounded-2xl text-sm cursor-pointer " 
                   onClick={() => setShowModal(!showModal)}>
                     Select token
-                  </div>
+                  </div>              
                 </div>
                 <div className="flex w-1/4">
-                  <select className="flex justify-between w-full h-min items-center bg-customSkyBlue rounded-2xl text-lg cursor-pointer p-2" onChange={(e) => setSelectedToken(e.target.value)}>
-                    {topLiquidTokens?.map((token) => {
+                  <select className="flex  w-full h-min items-center bg-customSkyBlue rounded-2xl text-lg cursor-pointer p-2"
+                   defaultValue={selectedToken}
+                   onChange={(e) => {
+                    setSelectedToken(e.target.value)
+                   }}
+                  value={selectedToken}
+                  >
+                    {displayedTokens?.map((token:Token) => {
                       return (
                         <option value={token.id} key={token.id} >
-                          <p >{token.symbol}</p>
+                          <p>{token.symbol}</p>
                         </option>
-                      );
-                    })}
+                      )})}                
                   </select>
                 </div>
               </div>
@@ -75,6 +89,11 @@ export default function Swap() {
                   value={(selectedTokenAmount * 1.52).toFixed(2)}
                   disabled
                 />
+                <div className="flex w-1/4">
+                  <div className="flex justify-center w-full h-min items-center bg-customSkyBlue rounded-2xl text-lg  p-2" >
+                    ETH
+                  </div>
+                </div>
               </div>
               <p className="text-center mt-2 mb-2"> Add token To Metamask </p>
               <ul className="text-center">

@@ -6,9 +6,16 @@ export type Token = {
   };
 
 export interface TokenProps {
-    token: Token
+    token: Token;
+    setSelectedToken: Function;
+    selectedToken: string | undefined;
+    setDisplayedTokens?: Function;
+    displayedTokens: Token[] | undefined;
 }
 export interface ModalProps {
     tokens: Token[] | undefined;
     setShowModal: Function;
+    setSelectedToken: Function;
+    setDisplayedTokens: Function;
+    selectedToken: string | undefined;
 }

@@ -11,6 +11,7 @@ import {
   chain,
   configureChains,
   createClient,
+  useAccount,
   WagmiConfig,
 } from "wagmi";
 import { infuraProvider } from "wagmi/providers/infura";
@@ -19,6 +20,8 @@ import { ThemeProvider } from "next-theme";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 import Layout from "../components/Layout";
+import { initGsn } from "../gsnHelpers/gsnHelpers";
+
 
 const { chains, provider } = configureChains(
   [chain.goerli],
@@ -31,6 +34,7 @@ const { chains, provider } = configureChains(
         return { http: chain.rpcUrls.default };
       },
     }),
+
   ]
 );
 
@@ -51,6 +55,7 @@ export const apolloClient = new ApolloClient({
 });
 
 export default function App({ Component, pageProps }: AppProps) {
+
   return (
     <ThemeProvider>
       <ApolloProvider client={apolloClient}>
