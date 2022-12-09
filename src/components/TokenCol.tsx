@@ -16,7 +16,7 @@ export const TokenCol:FC<TokenProps> = ({token,setSelectedToken,setDisplayedToke
           }      
       });
     }
-      setSelectedToken(token.id)
+      setSelectedToken(token)
     }}>
       <div>{token.symbol}</div>
     </div>

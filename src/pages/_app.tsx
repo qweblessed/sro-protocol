@@ -20,11 +20,10 @@ import { ThemeProvider } from "next-theme";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 import Layout from "../components/Layout";
-import { initGsn } from "../gsnHelpers/gsnHelpers";
 
 
 const { chains, provider } = configureChains(
-  [chain.goerli,chain.mainnet],
+  [chain.mainnet],
   [
     infuraProvider({ apiKey: "0f93404456e04fda97678c9174f03f69", priority: 0 }),
     publicProvider({ priority: 1 }),

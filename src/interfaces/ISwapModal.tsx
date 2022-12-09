@@ -8,7 +8,7 @@ export type Token = {
 export interface TokenProps {
     token: Token;
     setSelectedToken: Function;
-    selectedToken: string | undefined;
+    selectedToken: Token | undefined;
     setDisplayedTokens?: Function;
     displayedTokens: Token[] | undefined;
 }
@@ -17,5 +17,5 @@ export interface ModalProps {
     setShowModal: Function;
     setSelectedToken: Function;
     setDisplayedTokens: Function;
-    selectedToken: string | undefined;
+    selectedToken: Token | undefined;
 }

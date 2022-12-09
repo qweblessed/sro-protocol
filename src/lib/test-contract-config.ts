@@ -1,22 +1,22 @@
 import { Chain, chain } from 'wagmi';
-import TestContract from '../abi/TestContract.json'
+import Erc20 from '../abi/ERC20.json'
 
-export const testContract = (contractChain?: Chain) => {
+export const ERC20Contract = (contractChain?: Chain, address?:string) => {
     switch (contractChain?.id) {
-      case chain.mainnet.id:
+      case chain.mainnet.id:        
         return {
-          address: '0x0000000000000000000000000000000000000000',
-          abi: TestContract.abi,
+          address: address,
+          abi: Erc20.abi,
         };
         case chain.goerli.id:
         return {
-          address: '0xCF954d065E3069bD5355A9C703dEC76D07122377',
-          abi: TestContract.abi,
+          address: address,
+          abi: Erc20.abi,
         };
       default:
         return {
-          address: '0xCF954d065E3069bD5355A9C703dEC76D07122377',
-          abi: TestContract.abi,
+          address: address,
+          abi: Erc20.abi,
         };
     }
   };

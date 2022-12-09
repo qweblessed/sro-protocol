@@ -8,7 +8,7 @@ import { Token } from "../interfaces/ISwap";
 import { TokenProps } from "../interfaces/ISwapModal";
 
 export const TokenRow:FC<TokenProps> = ({token, setSelectedToken, selectedToken, setDisplayedTokens, displayedTokens}) => {
-
+    
   function addToken(existedTokens:Token[] | undefined, currentToken: Token){
     if(checkIsTokenAlreadyExist(existedTokens,currentToken)) {
       setDisplayedTokens?.((current: Token[]) => {    
@@ -18,16 +18,15 @@ export const TokenRow:FC<TokenProps> = ({token, setSelectedToken, selectedToken,
           return [...current, token];
         }})
       }
-  }
-  
+  }  
 
   return (
     <div  className={
-      token.id == selectedToken ?
+      token.id == selectedToken?.id ?
        "bg-customSkyBlue w-[90%] border rounded-xl h-[3rem] text-customDeepBlue p-[5px] text-sm cursor-pointer" :
        "bg-customLightBlue w-[90%] border rounded-xl h-[3rem] text-customDeepBlue p-[5px] text-sm cursor-pointer"}
         onClick={() => {
-          setSelectedToken(token.id)
+          setSelectedToken(token)
           addToken(displayedTokens, token)
        }
     }>
