@@ -24,7 +24,7 @@ import { initGsn } from "../gsnHelpers/gsnHelpers";
 
 
 const { chains, provider } = configureChains(
-  [chain.goerli],
+  [chain.goerli,chain.mainnet],
   [
     infuraProvider({ apiKey: "0f93404456e04fda97678c9174f03f69", priority: 0 }),
     publicProvider({ priority: 1 }),

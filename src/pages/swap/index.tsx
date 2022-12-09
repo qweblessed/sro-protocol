@@ -3,8 +3,14 @@ import { useEffect, useState } from "react";
 import { Token, TokensResponse } from "../../interfaces/ISwap";
 import { PAIRS_QUERY } from "../api/thegraph/queries";
 import SelectTokensModal from "../../components/SelectTokensModal";
-import { useContractWrite, useNetwork, usePrepareContractWrite } from "wagmi";
-import { testContract } from "../../lib/test-contract-config";
+import { useConnect, useContractWrite, useNetwork, usePrepareContractWrite, useSigner } from "wagmi";
+import  TokenSwap  from "../../abi/TokenSwap.json";
+import { Contract, ethers } from "ethers";
+import { initGsn } from "../../gsnHelpers/gsnHelpers";
+import { RelayProvider } from "@opengsn/provider/dist/RelayProvider";
+import { getProvider } from '@wagmi/core'
+import Web3 from 'web3'
+
 
 export default function Swap() {
   const { loading, error, data } = useQuery(PAIRS_QUERY)
@@ -13,6 +19,8 @@ export default function Swap() {
   const [displayedTokens, setDisplayedTokens] = useState<Token[] | undefined>();
   const [selectedToken, setSelectedToken] = useState<string>();
   const [showModal, setShowModal] = useState<boolean>(false);
+  const signer = useSigner().data;
+
 
   const getTopLiquidTokens = async () => {
     if(!loading && !error){
@@ -23,8 +31,27 @@ export default function Swap() {
       setDisplayedTokens(formattedTokens);
     }
   };
-
+  async function swap() {
+    const gsnConfig: Partial<any> = {
+      loggerConfiguration: {
+        logLevel: "error",
+      },
+      paymasterAddress: '0xb1A4C35541Ab3CD7fc872C5dD147CF4444E81B96',
+    };
   
+    const gsnProvider = await RelayProvider.newProvider({
+      provider: window.ethereum as any,
+      config: gsnConfig,
+    }).init();
+
+    // const gasFees = await gsnProvider.calculateGasFees()
+
+    const provider = new ethers.providers.Web3Provider(gsnProvider as any);
+    console.log('provider',provider)
+    // const provider = new ethers.providers.Web3Provider(gsnProvider);
+
+  }
+
   useEffect(() => {
     getTopLiquidTokens();
   }, [loading,error]); 
@@ -104,6 +131,7 @@ export default function Swap() {
               <div className="flex items-center justify-center cursor-pointer border rounded-2xl bg-customSkyBlue text-xl text-customDeepBlue font-semibold my-2 py-6 px-8">
                 Review swap
               </div>
+              <button onClick={() => swap()}>Swap</button>
             </div>
           </div>
         </div>
