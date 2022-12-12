@@ -1,7 +1,4 @@
-import Head from "next/head";
-import Image from "next/image";
-import Footer from "../../components/footer";
-import Header from "../../components/header";
+
 
 export default function Home() {
   return (
@@ -9,7 +6,7 @@ export default function Home() {
       <div className='flex justify-center mt-2 mb-2'>
         <div className='items-center w-[57%] p-5 h-[40rem] bg-customDeepBlue rounded-2xl shadow-sm shadow-customLightBlue mt-2 '>
           <h1 className='text-center text-6xl mt-20'>
-            Welcome to <span className="text-customRed">Dapp</span> template
+            Welcome to <span className="text-customRed">Protocol ZERO</span>
           </h1>    
           <div className='w-[100%]'>
             <ul className='flex flex-row items-center justify-center mt-20'>

@@ -1,14 +1,22 @@
 import { useQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
-import { Token, TokensResponse } from "../../interfaces/ISwap";
+import { ApproveType, Token, TokensResponse } from "../../interfaces/ISwap";
 import { PAIRS_QUERY } from "../api/thegraph/queries";
 import SelectTokensModal from "../../components/SelectTokensModal";
-import { useAccount, useContractRead, useContractWrite, useNetwork, usePrepareContractWrite, useSigner } from "wagmi";
+import {
+  useAccount,
+  useContractRead,
+  useContractWrite,
+  useNetwork,
+  usePrepareContractWrite,
+  useSigner,
+} from "wagmi";
 import { SwapTokenToEth } from "../../gsnHelpers/gsnHelpers";
-import { objectParse, objectStringify } from "../../helpers/helpers";
-import { ERC20Contract } from "../../lib/test-contract-config";
-import { ethers } from "ethers";
+import { addTokenToWallet, formatBigNumberToNumber, objectParse, objectStringify, weiToEth } from "../../helpers/helpers";
+import { ERC20Contract } from "../../lib/ERC20Contract-config";
+import { BigNumber, ethers } from "ethers";
 import ApproveTokenModal from "../../components/ApproveTokenModal";
+import { UniswapV2Contract } from "../../lib/UniswapV2Contract-config";
 
 export default function Swap() {
   const { chain } = useNetwork();
@@ -19,77 +27,9 @@ export default function Swap() {
   const [selectedToken, setSelectedToken] = useState<Token>();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showApproveModal, setShowApproveModal] = useState<boolean>(false);
-  const [tokenModal, setTokenModal] = useState<string | undefined>('');
-
+  const [tokenModal, setTokenModal] = useState<string | undefined>("");
+  const [approveType, setApproveType] = useState<ApproveType>(2);
   const signer = useSigner().data;
-
-
-  const { data: approvedZroTokenAmount } = useContractRead({
-    ...ERC20Contract(chain,'0xd79F43113B22D1eA9F29cfcC7BB287489F8EE5e0'),
-    functionName: 'allowance',
-    args:[address,'0x108e544A4f03241483d296e1fA288029DB61f702']
-  });
-    console.log('approvedZroTokenAmount',approvedZroTokenAmount)
-    console.log('signer?.getAddress()',address)
-
-  const { data: approvedSelectedTokenAmount } = useContractRead({
-    ...ERC20Contract(chain,selectedToken?.id),
-    functionName: 'allowance',
-    args:[address,'0x108e544A4f03241483d296e1fA288029DB61f702']
-  });
-
-  const { config: configZroTokenApprove } = usePrepareContractWrite({
-    ...ERC20Contract(chain,'0xd79F43113B22D1eA9F29cfcC7BB287489F8EE5e0'),
-    functionName: 'approve',
-    args: ['0x108e544A4f03241483d296e1fA288029DB61f702', ethers.constants.MaxUint256],
-    onError(){
-      console.log('zroConfigApprove error')
-    }
-  });
-  
-  const { config: configSelectedTokenApprove } = usePrepareContractWrite({
-    ...ERC20Contract(chain,selectedToken?.id),
-    functionName: 'approve',
-    args: ['0x108e544A4f03241483d296e1fA288029DB61f702', ethers.constants.MaxUint256],
-    onError(){
-      console.log('tokenConfigApprove error')
-    }
-  });
-  
-  const {
-    data: approveSelectedTokenData,
-    write: approveSelectedToken,
-    isLoading:isTokenLoading,
-    isSuccess:isTokenSuccess,
-    isError:isTokenError,
-  } = useContractWrite({
-    ...configSelectedTokenApprove,
-  });
-
-  const {
-    data: approveZroTokenData,
-    write: approveZroTokens,
-    isLoading:isZroLoading,
-    isSuccess:isZroSuccess,
-    isError:isZroError,
-  } = useContractWrite({
-    ...configZroTokenApprove,
-  });
-
-  const setupApprovalSteps = () => {     
-    if(Number(approvedZroTokenAmount) < 10000){
-      setTokenModal('ZRO')
-      setShowApproveModal(true)
-      // approveZroTokens?.()
-    }
-
-    if(Number(approvedSelectedTokenAmount) < selectedTokenAmount) {
-      setTokenModal(selectedToken?.symbol)
-      setShowApproveModal(true)
-      // approveSelectedToken?.()
-    }
-   
-  }
 
   const getTopLiquidTokens = async () => {
     if (!loading && !error) {
@@ -101,27 +41,139 @@ export default function Swap() {
     }
   };
 
-  async function swap(selectedToken: Token) {
-    if (!signer || !selectedToken) return alert("!signer or !selectedToken");
+  const { data: tokenValue } = useContractRead({
+    ...UniswapV2Contract(chain),
+    functionName: 'getAmountsOut',
+    args:[ethers.utils.parseUnits("1"), [process.env.UNISWAP_WETH, selectedToken?.id]]
+  });
 
-    setupApprovalSteps()
-    SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString());
+  const { data: selectedTokenSupply } = useContractRead({
+    ...ERC20Contract(chain, selectedToken?.id),
+    functionName: 'totalSupply',
+    onError(){
+      console.log('totalSupply error')
+    }
+  });
+  const { data: totalBurned } = useContractRead({
+    ...ERC20Contract(chain, selectedToken?.id),
+    functionName: 'balanceOf',
+    args:['0x000000000000000000000000000000000000dead'],
+    onError(){
+      console.log('balanceOf(0xdead) error')
+    }
+  });
+    
+  const { data: approvedZroTokenAmount } = useContractRead({
+    ...ERC20Contract(chain, process.env.ZRO_TOKEN),
+    functionName: 'allowance',
+    args:[address, process.env.GSN_TOKEN_SWAP]
+  });
+
+  const { data: approvedSelectedTokenAmount } = useContractRead({
+    ...ERC20Contract(chain,selectedToken?.id),
+    functionName: 'allowance',
+    args:[address, process.env.GSN_TOKEN_SWAP]
+  });
+
+  const { config: configZroTokenApprove } = usePrepareContractWrite({
+    ...ERC20Contract(chain,process.env.ZRO_TOKEN),
+    functionName: 'approve',
+    args: [process.env.GSN_TOKEN_SWAP, ethers.constants.MaxUint256],
+    onError(){
+      console.log('zroConfigApprove error')
+    }
+  });
+
+  const { config: configSelectedTokenApprove } = usePrepareContractWrite({
+    ...ERC20Contract(chain,selectedToken?.id),
+    functionName: 'approve',
+    args: [process.env.GSN_TOKEN_SWAP, ethers.constants.MaxUint256],
+    onError(){
+      console.log('tokenConfigApprove error')
+    }
+  });
+
+  const {
+    data: approveSelectedTokenData,
+    write: approveSelectedToken,
+    isLoading: isTokenLoading,
+    isSuccess: isTokenSuccess,
+    isError: isTokenError,
+  } = useContractWrite({
+    ...configSelectedTokenApprove,
+  });
+
+  const {
+    data: approveZroTokenData,
+    writeAsync: approveZroTokens,
+    isLoading: isZroLoading,
+    isSuccess: isZroSuccess,
+    isError: isZroError,
+  } = useContractWrite({
+    ...configZroTokenApprove,
+  });
+
+  const setupApprovalSteps = async () => {
+    if (
+      Number(approvedZroTokenAmount) < 10000 &&
+      Number(approvedSelectedTokenAmount) < selectedTokenAmount
+    ) {
+      setApproveType(2);
+      approveZroTokens?.();
+      approveSelectedToken?.();
+      return;
+    }
+    if (Number(approvedZroTokenAmount) < 10000) {
+      setApproveType(0);
+      approveZroTokens?.();
+      return;
+    }
+    if (Number(approvedSelectedTokenAmount) < selectedTokenAmount) {
+      setApproveType(1);
+      approveSelectedToken?.();
+      return;
+    } else {
+      setApproveType(3);
+    }
+  };
+
+  async function swap(selectedToken: Token) {
+    if (!signer) return alert("!signer or !selectedToken");
+
+    setupApprovalSteps();
+
+    if(approveType == 3){
+      SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString());
+    } else {
+      setShowApproveModal(true);
+      SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString());
+    }
   }
-  
+
   useEffect(() => {
     getTopLiquidTokens();
-  }, [loading, error]);
+  }, [loading]);
 
-  console.log('tokenModal',tokenModal)
+  useEffect(() => {
+    getTopLiquidTokens();
+  }, [loading]);
+
   return (
     <div className="flex justify-center mt-2 mb-2">
       <div className="items-center w-[35%] p-5 h-[40rem] bg-customDeepBlue rounded-2xl shadow-sm shadow-customLightBlue mt-2 ">
-       {showApproveModal && tokenModal == selectedToken?.symbol ? 
-          <ApproveTokenModal isError={isTokenError} isSuccess={isTokenSuccess} isLoading={isTokenLoading} text={tokenModal} setShowApproveModal={setShowApproveModal}/>
-        :
-        showApproveModal && tokenModal == 'ZRO' ? 
-          <ApproveTokenModal isError={isZroError} isSuccess={isZroSuccess} isLoading={isZroLoading} text={tokenModal} setShowApproveModal={setShowApproveModal}/> 
-        : null}
+        {showApproveModal ? (
+          <ApproveTokenModal
+            isSelectedTokenLoading={isTokenLoading}
+            isZroLoading={isZroLoading}
+            setShowApproveModal={setShowApproveModal}
+            approveType={approveType}
+            selectedTokenTxData={approveSelectedTokenData}
+            zroTokenTxData={approveZroTokenData}
+            isZroError = {isZroError}
+            isSelectedTokenError = {isTokenError}
+            selectedTokenSymbol={selectedToken?.symbol}
+          />
+        ) : null}
 
         {showModal ? (
           <SelectTokensModal
@@ -190,11 +242,11 @@ export default function Swap() {
                   </div>
                 </div>
               </div>
-              <p className="text-center mt-2 mb-2"> Add token To Metamask </p>
+              <p className="text-center mt-2 mb-2 cursor-pointer text-sky-500" onClick={() => addTokenToWallet(selectedToken, window.ethereum)}> Add token To Metamask </p>
               <ul className="text-center">
-                <li>1 ETH = 1200 USDC</li>
-                <li>Total Supply: 8,422,561,521</li>
-                <li>Total Burned: 1,241,231</li>
+                <li>1 ETH = {(+formatBigNumberToNumber(tokenValue as BigNumber[], selectedToken?.decimals)).toFixed(2)} {selectedToken?.symbol}</li>
+                <li>Total Supply: {(+weiToEth(selectedTokenSupply as BigNumber,selectedToken?.decimals)).toFixed(2)}</li>
+                <li>Total {selectedToken?.symbol} Burned: {(+weiToEth(totalBurned as BigNumber,selectedToken?.decimals)).toFixed(2)}</li>
               </ul>
               <div className="flex items-center justify-center cursor-pointer border rounded-2xl bg-customSkyBlue text-xl text-customDeepBlue font-semibold my-2 py-6 px-8">
                 Review swap
@@ -204,7 +256,7 @@ export default function Swap() {
                   if (selectedToken) {
                     swap(selectedToken);
                   } else {
-                    alert('!selected token')
+                    // alert('!selected token')
                   }
                 }}
               >
