@@ -12,9 +12,8 @@ module.exports = {
         'customSkyBlue':'#05D9E8',
         'customBlue':'#005678',
         'customDeepBlue':'#01012B',
-        'customGreen':'#41ff91',
-        'customPaleBlue':'#C0EEE4'
-
+        'customGreen':'#3CCF4E',
+        'customPaleBlue':'#C0EEE4'        
       },
       backgroundImage: {
         'gradient-bg': "url('/src/assets/header/gradientBg.svg')",      
