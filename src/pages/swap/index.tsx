@@ -24,7 +24,7 @@ import { BigNumber, ethers } from "ethers";
 import ApproveTokenModal from "../../components/ApproveTokenModal";
 import { UniswapV2Contract } from "../../lib/UniswapV2Contract-config";
 import ErrorModal from "../../components/ErrorTokenModal";
-import SwapLoader from "../../components/loader";
+import SwapLoader from "../../components/SwapLoader";
 
 export default function Swap() {
   const { chain } = useNetwork();
