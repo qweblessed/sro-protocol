@@ -36,7 +36,7 @@ export const CustomConnectButton = () => {
               {(() => {
                 if (!connected) {
                   return (
-                    <button onClick={openConnectModal} type="button" className="bg-customSkyBlue w-[8rem] h-[3rem] rounded-lg animate-pulse">
+                    <button onClick={openConnectModal} type="button" className="bg-slate-800 w-[8rem] h-[3rem] rounded-lg animate-pulse text-customGreen">
                       Connect Wallet
                     </button>
                   );
@@ -51,10 +51,10 @@ export const CustomConnectButton = () => {
                 }
   
                 return (
-                  <div className="flex flex-col	 ">                      
+                  <div className="flex flex-col	">                      
                     <button
                       onClick={openChainModal}
-                      className="flex justify-center items-center bg-customSkyBlue w-[8rem] h-[2rem] rounded-lg text-slate-900"
+                      className="flex justify-center items-center bg-slate-800 w-[8rem] h-[2rem] rounded-lg text-customGreen "
                       type="button"
                     >
                       {chain.hasIcon && (
@@ -79,7 +79,7 @@ export const CustomConnectButton = () => {
                       )}                    
                       {chain.name}
                     </button>
-                    <button onClick={openAccountModal} type="button" className="bg-customSkyBlue w-[8rem] h-[2rem] rounded-lg mt-4 text-slate-900">
+                    <button onClick={openAccountModal} type="button" className="bg-slate-800 w-[8rem] h-[2rem] rounded-lg mt-4 text-customGreen max-sm:mt-1">
                       {account.displayName}                     
                     </button>
 

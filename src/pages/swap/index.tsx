@@ -12,11 +12,19 @@ import {
   useSigner,
 } from "wagmi";
 import { SwapTokenToEth } from "../../gsnHelpers/gsnHelpers";
-import { addTokenToWallet, formatBigNumberToNumber, objectParse, objectStringify, weiToEth } from "../../helpers/helpers";
+import {
+  addTokenToWallet,
+  formatBigNumberToNumber,
+  objectParse,
+  objectStringify,
+  weiToEth,
+} from "../../helpers/helpers";
 import { ERC20Contract } from "../../lib/ERC20Contract-config";
 import { BigNumber, ethers } from "ethers";
 import ApproveTokenModal from "../../components/ApproveTokenModal";
 import { UniswapV2Contract } from "../../lib/UniswapV2Contract-config";
+import ErrorModal from "../../components/ErrorTokenModal";
+import SwapLoader from "../../components/loader";
 
 export default function Swap() {
   const { chain } = useNetwork();
@@ -27,7 +35,8 @@ export default function Swap() {
   const [selectedToken, setSelectedToken] = useState<Token>();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showApproveModal, setShowApproveModal] = useState<boolean>(false);
-  const [tokenModal, setTokenModal] = useState<string | undefined>("");
+  const [errorModal, setErrorModal] = useState<boolean>(false);
+  const [errorModalText, setErrorModalText] = useState<string>("");
   const [approveType, setApproveType] = useState<ApproveType>(2);
   const signer = useSigner().data;
 
@@ -43,54 +52,69 @@ export default function Swap() {
 
   const { data: tokenValue } = useContractRead({
     ...UniswapV2Contract(chain),
-    functionName: 'getAmountsOut',
-    args:[ethers.utils.parseUnits("1"), [process.env.UNISWAP_WETH, selectedToken?.id]]
+    functionName: "getAmountsOut",
+    args: [
+      ethers.utils.parseUnits("1"),
+      [process.env.UNISWAP_WETH, selectedToken?.id],
+    ],
   });
 
   const { data: selectedTokenSupply } = useContractRead({
     ...ERC20Contract(chain, selectedToken?.id),
-    functionName: 'totalSupply',
-    onError(){
-      console.log('totalSupply error')
-    }
+    functionName: "totalSupply",
+    onError() {
+      console.log("totalSupply error");
+    },
   });
+
+  const { data: accountTokenBalance } = useContractRead({
+    ...ERC20Contract(chain, selectedToken?.id),
+    functionName: "balanceOf",
+    args: [address],
+    onError() {
+      console.log("balanceOf(userAddrr) error");
+    },
+  });
+
   const { data: totalBurned } = useContractRead({
     ...ERC20Contract(chain, selectedToken?.id),
-    functionName: 'balanceOf',
-    args:['0x000000000000000000000000000000000000dead'],
-    onError(){
-      console.log('balanceOf(0xdead) error')
-    }
+    functionName: "balanceOf",
+    args: ["0x000000000000000000000000000000000000dead"],
+    onError() {
+      console.log("balanceOf(0xdead) error");
+    },
   });
-    
+
   const { data: approvedZroTokenAmount } = useContractRead({
     ...ERC20Contract(chain, process.env.ZRO_TOKEN),
-    functionName: 'allowance',
-    args:[address, process.env.GSN_TOKEN_SWAP]
+    functionName: "allowance",
+    args: [address, process.env.GSN_TOKEN_SWAP],
   });
 
   const { data: approvedSelectedTokenAmount } = useContractRead({
-    ...ERC20Contract(chain,selectedToken?.id),
-    functionName: 'allowance',
-    args:[address, process.env.GSN_TOKEN_SWAP]
+    ...ERC20Contract(chain, selectedToken?.id),
+    functionName: "allowance",
+    args: [address, process.env.GSN_TOKEN_SWAP],
   });
 
   const { config: configZroTokenApprove } = usePrepareContractWrite({
-    ...ERC20Contract(chain,process.env.ZRO_TOKEN),
-    functionName: 'approve',
+    ...ERC20Contract(chain, process.env.ZRO_TOKEN),
+    functionName: "approve",
     args: [process.env.GSN_TOKEN_SWAP, ethers.constants.MaxUint256],
-    onError(){
-      console.log('zroConfigApprove error')
-    }
+    onError(err) {
+      setErrorModal(true);
+      setErrorModalText(err.message);
+    },
   });
 
   const { config: configSelectedTokenApprove } = usePrepareContractWrite({
-    ...ERC20Contract(chain,selectedToken?.id),
-    functionName: 'approve',
+    ...ERC20Contract(chain, selectedToken?.id),
+    functionName: "approve",
     args: [process.env.GSN_TOKEN_SWAP, ethers.constants.MaxUint256],
-    onError(){
-      console.log('tokenConfigApprove error')
-    }
+    onError(err) {
+      setErrorModal(true);
+      setErrorModalText(err.message);
+    },
   });
 
   const {
@@ -123,11 +147,13 @@ export default function Swap() {
       approveSelectedToken?.();
       return;
     }
+
     if (Number(approvedZroTokenAmount) < 10000) {
       setApproveType(0);
       approveZroTokens?.();
       return;
     }
+
     if (Number(approvedSelectedTokenAmount) < selectedTokenAmount) {
       setApproveType(1);
       approveSelectedToken?.();
@@ -140,13 +166,21 @@ export default function Swap() {
   async function swap(selectedToken: Token) {
     if (!signer) return alert("!signer or !selectedToken");
 
-    setupApprovalSteps();
+    if (
+      +weiToEth(accountTokenBalance as BigNumber, selectedToken.decimals) <
+      selectedTokenAmount
+    ) {
+      setErrorModal(true);
+      setErrorModalText(`Not enough ${selectedToken.symbol} balance`);
+      return;
+    }
 
-    if(approveType == 3){
-      SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString());
+    if (approveType == 3) {      
+      SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString(), setErrorModal, setErrorModalText);
     } else {
+      setupApprovalSteps();
       setShowApproveModal(true);
-      SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString());
+      SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString(), setErrorModal, setErrorModalText);
     }
   }
 
@@ -159,8 +193,8 @@ export default function Swap() {
   }, [loading]);
 
   return (
-    <div className="flex justify-center mt-2 mb-2">
-      <div className="items-center w-[35%] p-5 h-[40rem] bg-customDeepBlue rounded-2xl shadow-sm shadow-customLightBlue mt-2 ">
+    <div className="flex justify-center mt-2 mb-2 ">
+      <div className="items-center w-[35%] p-5 h-[40rem] bg-gray-200 rounded-2xl shadow-sm shadow-customLightBlue mt-2 max-sm:w-[95%] opacity-90">
         {showApproveModal ? (
           <ApproveTokenModal
             isSelectedTokenLoading={isTokenLoading}
@@ -169,8 +203,8 @@ export default function Swap() {
             approveType={approveType}
             selectedTokenTxData={approveSelectedTokenData}
             zroTokenTxData={approveZroTokenData}
-            isZroError = {isZroError}
-            isSelectedTokenError = {isTokenError}
+            isZroError={isZroError}
+            isSelectedTokenError={isTokenError}
             selectedTokenSymbol={selectedToken?.symbol}
           />
         ) : null}
@@ -184,84 +218,138 @@ export default function Swap() {
             setDisplayedTokens={setDisplayedTokens}
           />
         ) : null}
-        <h2 className="text-center text-customRed text-3xl font-semibold">
+        <h2 className="text-center text-slate-800 text-3xl font-semibold">
           ERC20 To ETH Swap
         </h2>
         <div className="flex justify-center items-center ">
           <div className="flex items-center justify-center font-mono w-screen mt-6">
-            <div className="bg-customBlue w-[100%] rounded-xl shadow-xl p-4">
-              <div className="flex items-center justify-between font-semibold text-xl text-customSkyBlue px-2 ">
+            <div className="bg-slate-800 w-[100%] rounded-xl shadow-xl p-4 max-sm:h-[90%]">
+              <div className="flex items-center justify-between font-semibold text-xl text-customGreen px-2 ">
                 <h1>Swap</h1>
+                {!displayedTokens ? <SwapLoader /> : null}
               </div>
-              <div className="flex justify-between text-customDeepBlue bg-customLightBlue rounded-2xl text-3xl border border-[#D4DBE5] my-3 p-6">
-                <input
-                  type="number"
-                  className="w-full bg-transparent placeholder:text-customSkyBlue outline-none text-2xl mb-6"
-                  onChange={(e) =>
-                    setSelectedTokenAmount(Number(e.target.value))
-                  }
-                />
-                <div className="flex w-1/4 pr-1">
-                  <div
-                    className="w-full h-min text-center bg-customSkyBlue rounded-2xl text-sm cursor-pointer "
-                    onClick={() => setShowModal(!showModal)}
-                  >
-                    Select token
+              <div className="flex justify-between text-customGreen bg-slate-200 rounded-xl text-3xl border border-[#D4DBE5] my-3 p-6 w-[1/4] max-sm:p-2">
+                <div className="flex flex-col">
+                  <input
+                    type="number"
+                    className="w-[90%] bg-transparent placeholder:text-customSkyBlue text-slate-900 outline-none text-2xl  max-sm:w-[56px]"
+                    onChange={(e) =>
+                      setSelectedTokenAmount(Number(e.target.value))
+                    }
+                  />
+                  <span className="text-sm text-slate-900 font-bold">
+                    Balance:{" "}
+                    {weiToEth(
+                      accountTokenBalance as BigNumber,
+                      selectedToken?.decimals
+                    )}
+                  </span>
+                </div>
+                <div className="flex flex-row">
+                  <div className="flex justify-end pr-1 max-sm:w-[1/4] max-sm:w-[55px] max-sm:h-[32px]">
+                    <div
+                      className="flex h-[39px] w-[91px] justify-center items-center bg-slate-800 rounded-xl text-lg cursor-pointer max-sm:text-xs max-sm:w-[55px] max-sm:rounded-xl max-sm:h-[32px] 
+                      hover:bg-green-500 hover:text-slate-900 transition duration-300"
+                      onClick={() => setShowModal(!showModal)}
+                    >
+                      Select
+                    </div>
+                  </div>
+                  <div className="flex justify-end pr-1">
+                    <select
+                      className="flex h-min items-center bg-slate-800 rounded-xl text-lg text-center cursor-pointer p-2 max-sm:text-xs max-sm:w-[55px] max-sm:rounded-xl
+                      hover:bg-green-500 hover:text-slate-900 transition duration-300"
+                      defaultValue={objectStringify(selectedToken)}
+                      onChange={(e) => {
+                        setSelectedToken(objectParse(e.target.value));
+                      }}
+                      value={objectStringify(selectedToken)}
+                    >
+                      {displayedTokens?.map((token: Token) => {
+                        return (
+                          <option value={objectStringify(token)} key={token.id}>
+                            <p>{token.symbol}</p>
+                          </option>
+                        );
+                      })}
+                    </select>
                   </div>
                 </div>
-                <div className="flex w-1/4">
-                  <select
-                    className="flex  w-full h-min items-center bg-customSkyBlue rounded-2xl text-lg cursor-pointer p-2"
-                    defaultValue={objectStringify(selectedToken)}
-                    onChange={(e) => {
-                      setSelectedToken(objectParse(e.target.value));
-                    }}
-                    value={objectStringify(selectedToken)}
-                  >
-                    {displayedTokens?.map((token: Token) => {
-                      return (
-                        <option value={objectStringify(token)} key={token.id}>
-                          <p>{token.symbol}</p>
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
               </div>
-              <div className="flex justify-between bg-customLightBlue rounded-2xl text-3xl border border-[#D4DBE5] text-customDeepBlue my-3  p-6">
+              <div className="flex justify-between bg-slate-200 rounded-xl text-3xl border border-[#D4DBE5] text-customDeepBlue my-3 p-6 max-sm:p-2">
                 <input
                   type="number"
-                  className="bg-transparent placeholder:text-[#B2B9D2] outline-none mb-6 w-full text-2xl"
+                  className="bg-transparent placeholder:text-slate-900 outline-none mb-6 w-full text-2xl"
                   placeholder="You GET"
-                  value={(selectedTokenAmount * 1.52).toFixed(2)}
+                  value={(
+                    Number(selectedTokenAmount) /
+                    +formatBigNumberToNumber(
+                      tokenValue as BigNumber[],
+                      selectedToken?.decimals
+                    )
+                  ).toFixed(3)}
                   disabled
                 />
-                <div className="flex w-1/4">
-                  <div className="flex justify-center w-full h-min items-center bg-customSkyBlue rounded-2xl text-lg  p-2">
+
+                <div className="flex justify-end w-1/4 max-sm:w-3/4 max-sm:ml-[50px] ">
+                  <div
+                    className="flex justify-center w-[91px] h-[39px] items-center bg-slate-800 text-customGreen rounded-xl text-lg p-2 max-sm:text-xs max-sm:w-[55px]
+                    max-sm:rounded-xl max-sm:h-[32px]"
+                  >
                     ETH
                   </div>
                 </div>
               </div>
-              <p className="text-center mt-2 mb-2 cursor-pointer text-sky-500" onClick={() => addTokenToWallet(selectedToken, window.ethereum)}> Add token To Metamask </p>
-              <ul className="text-center">
-                <li>1 ETH = {(+formatBigNumberToNumber(tokenValue as BigNumber[], selectedToken?.decimals)).toFixed(2)} {selectedToken?.symbol}</li>
-                <li>Total Supply: {(+weiToEth(selectedTokenSupply as BigNumber,selectedToken?.decimals)).toFixed(2)}</li>
-                <li>Total {selectedToken?.symbol} Burned: {(+weiToEth(totalBurned as BigNumber,selectedToken?.decimals)).toFixed(2)}</li>
+              <p
+                className="text-center mt-2 mb-2 cursor-pointer text-customGreen"
+                onClick={() => addTokenToWallet(selectedToken, window.ethereum)}
+              >
+                {" "}
+                Add token To Metamask{" "}
+              </p>
+              <ul className="text-center max-sm:text-sm">
+                <li>
+                  1 ETH ={" "}
+                  {(+formatBigNumberToNumber(
+                    tokenValue as BigNumber[],
+                    selectedToken?.decimals
+                  )).toFixed(2)}{" "}
+                  {selectedToken?.symbol}
+                </li>
+                <li>
+                  Total Supply:{" "}
+                  {(+weiToEth(
+                    selectedTokenSupply as BigNumber,
+                    selectedToken?.decimals
+                  )).toFixed(2)}
+                </li>
+                <li>
+                  Total {selectedToken?.symbol} Burned:{" "}
+                  {(+weiToEth(
+                    totalBurned as BigNumber,
+                    selectedToken?.decimals
+                  )).toFixed(2)}
+                </li>
               </ul>
-              <div className="flex items-center justify-center cursor-pointer border rounded-2xl bg-customSkyBlue text-xl text-customDeepBlue font-semibold my-2 py-6 px-8">
-                Review swap
-              </div>
-              <button
+              <div
+                className="flex items-center justify-center cursor-pointer border rounded-xl bg-customGreen text-xl text-slate-900 font-semibold my-2 py-6 px-8  hover:bg-green-400 transition duration-400"
                 onClick={() => {
                   if (selectedToken) {
                     swap(selectedToken);
                   } else {
-                    // alert('!selected token')
+                    setErrorModal(true);
+                    setErrorModalText("No selected Token");
                   }
                 }}
               >
                 Swap
-              </button>
+              </div>
+              {errorModal ? (
+                <ErrorModal
+                  errorText={errorModalText}
+                  setErrorModal={setErrorModal}
+                />
+              ) : null}
             </div>
           </div>
         </div>

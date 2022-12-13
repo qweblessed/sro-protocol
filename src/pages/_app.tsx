@@ -20,6 +20,8 @@ import { ThemeProvider } from "next-theme";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 import Layout from "../components/Layout";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 
 const { chains, provider } = configureChains(
@@ -65,7 +67,7 @@ export default function App({ Component, pageProps }: AppProps) {
             modalSize="compact"
           >
             <Layout>
-              <Component {...pageProps} />{" "}
+              <Component {...pageProps} />
             </Layout>
           </RainbowKitProvider>
         </WagmiConfig>

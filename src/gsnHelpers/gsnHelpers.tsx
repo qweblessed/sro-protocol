@@ -2,6 +2,7 @@ import { RelayProvider } from "@opengsn/provider";
 import { Contract, ethers, Signer } from "ethers";
 import TokenPaymaster from "../abi/TokenPaymaster.json"
 import TokenSwap from "../abi/TokenSwap.json";
+import { objectParse } from "../helpers/helpers";
 import { Token } from "../interfaces/ISwapModal";
 
 export async function getGsnProvider(){
@@ -35,7 +36,7 @@ export async function getGsnProvider(){
     return await gsnPaymasterInstance.minGas()
   };
 
-  export async function SwapTokenToEth(signer:Signer, token:Token, amount:string ) {
+  export async function SwapTokenToEth(signer:Signer, token:Token, amount:string, setErrorModal:Function, setErrorModalText:Function) {
     if (signer) {
       const provider = await getGsnProvider();
       const tokenSwap = new Contract(
@@ -45,8 +46,16 @@ export async function getGsnProvider(){
       );
       if (provider) {
         const minGas = await getMinGas(signer)
-        tokenSwap.connect(provider.getSigner())
+        try {
+          await tokenSwap.connect(provider.getSigner())
           .swapTokensForEth('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', ethers.utils.parseUnits(amount,token.decimals), {gasLimit: minGas});
+      
+        } catch(error){
+          if(error instanceof Error){          
+            setErrorModal(true)
+            setErrorModalText(error.message)
+          }
+        }
       }
     }
   }

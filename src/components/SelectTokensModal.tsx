@@ -18,10 +18,10 @@ const SelectTokensModal: FC<ModalProps> = ({
   }
 
   return (
-    <div className="absolute h-[42rem] w-[24%] top-[10rem] left-[720px] bg-customBlue z-2 border rounded-2xl	">
-      <div className="flex justify-between m-4  ">
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 z-2 border rounded-xl w-[26rem] max-sm:w-[20rem]">
+      <div className="flex justify-between m-4 ">
         <div>
-          <h2>Select a token</h2>
+          <h2 className="text-customGreen">Select a token</h2>
         </div>
         <div
           className="cursor-pointer"
@@ -34,7 +34,7 @@ const SelectTokensModal: FC<ModalProps> = ({
       </div>
       <input
         type="text"
-        className="w-[90%] bg-customDeepBlue outline-none p-2 ml-[5%] mr-[5%] border rounded-xl text-sm"
+        className="w-[90%] bg-customDeepBlue outline-none p-2 ml-[5%] mr-[5%] border-gray-300 border-2 rounded-xl text-sm"
         placeholder="Paste address"
         onChange={(e) => {
           if (/^0x[a-fA-F0-9]{40}$/g.test(e.target.value)) {
@@ -81,9 +81,9 @@ const SelectTokensModal: FC<ModalProps> = ({
           />
         )}
       </div>
-      <div className="flex justify-center mt-5  ">
+      <div className="flex justify-center mt-5 mb-2 ">
         <button
-          className="w-[200px] border rounded-2xl "
+          className="w-[200px]  rounded bg-customGreen text-slate-800 font-semibold  hover:bg-green-400 transition duration-300"
           onClick={() => {
             setShowModal(false);
           }}
