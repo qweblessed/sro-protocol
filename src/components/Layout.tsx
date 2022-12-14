@@ -4,8 +4,8 @@ import Image from "next/image";
 const Layout = ({ children }: any) => {
 
   return (
-    <div >
-      <Image src={bg} className="backgroundImg" width={2880} height={1614} alt="bg-image"/>
+    <div className="bg-[url('../assets/background/background.png')] bg-cover h-screen">
+      
       <Header />
       {children}
     </div>

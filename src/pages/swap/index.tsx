@@ -32,7 +32,7 @@ export default function Swap() {
   const { loading, error, data } = useQuery(PAIRS_QUERY);
   const { address } = useAccount();
   const [selectedTokenAmount, setSelectedTokenAmount] = useState<number>(0);
-  const [displayedTokens, setDisplayedTokens] = useState<Token[] >();
+  const [displayedTokens, setDisplayedTokens] = useState<Token[]>();
   const [selectedToken, setSelectedToken] = useState<Token>();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showApproveModal, setShowApproveModal] = useState<boolean>(false);
@@ -41,19 +41,21 @@ export default function Swap() {
   const [errorModalText, setErrorModalText] = useState<string>("");
   const [approveType, setApproveType] = useState<ApproveType>(2);
   const signer = useSigner().data;
-  
+
   const getTopLiquidTokens = async () => {
-    if(loading){
-      setDisplayedTokens(defaultTokens)
-      setLoader(true)
+    if (loading) {
+      setDisplayedTokens(defaultTokens);
+      setLoader(true);
     }
     if (!loading && !error) {
       const formattedTokens = data.pairs.map((item: TokensResponse) => {
         return item.token0;
       });
-      setSelectedToken(formattedTokens.find((token:Token) => token.id == selectedToken?.id));
+      setSelectedToken(
+        formattedTokens.find((token: Token) => token.id == selectedToken?.id)
+      );
       setDisplayedTokens(formattedTokens);
-      setLoader(false)
+      setLoader(false);
     }
   };
 
@@ -178,16 +180,28 @@ export default function Swap() {
       selectedTokenAmount
     ) {
       setErrorModal(true);
-      setErrorModalText(`Not enough ${selectedToken.symbol} balance`);
+      setErrorModalText(`Not enough ${selectedToken?.symbol} balance`);
       return;
     }
 
-    if (approveType == 3) {      
-      SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString(), setErrorModal, setErrorModalText);
+    if (approveType == 3) {
+      SwapTokenToEth(
+        signer,
+        selectedToken,
+        selectedTokenAmount.toString(),
+        setErrorModal,
+        setErrorModalText
+      );
     } else {
       setupApprovalSteps();
       setShowApproveModal(true);
-      SwapTokenToEth(signer, selectedToken, selectedTokenAmount.toString(), setErrorModal, setErrorModalText);
+      SwapTokenToEth(
+        signer,
+        selectedToken,
+        selectedTokenAmount.toString(),
+        setErrorModal,
+        setErrorModalText
+      );
     }
   }
 
@@ -222,7 +236,7 @@ export default function Swap() {
           />
         ) : null}
         <h2 className="text-center text-slate-200 text-3xl font-semibold  max-sm:text-xl">
-          ERC20 To ETH Swap
+           ZRO ETH-less Swap
         </h2>
         <div className="flex justify-center items-center ">
           <div className="flex items-center justify-center font-mono w-screen mt-6">
@@ -232,10 +246,11 @@ export default function Swap() {
                 {loader ? <SwapLoader /> : null}
               </div>
               <div className="flex justify-between text-customGreen bg-slate-200 rounded-xl text-3xl border border-[#D4DBE5] my-3 p-6 w-[1/4] max-sm:p-2">
-                <div className="flex flex-col">
+                <div className="flex flex-col ">
                   <input
                     type="number"
-                    className="w-[90%] bg-transparent placeholder:text-customSkyBlue text-slate-900 outline-none text-2xl  max-sm:w-[56px]"
+                    placeholder="Enter"
+                    className="w-[90%] bg-transparent placeholder:text-slate-900 text-slate-900 outline-none text-2xl  max-sm:w-[56px]"
                     onChange={(e) =>
                       setSelectedTokenAmount(Number(e.target.value))
                     }
@@ -262,6 +277,7 @@ export default function Swap() {
                     <select
                       className="flex h-min items-center bg-slate-800 rounded-xl text-lg text-center cursor-pointer p-2 max-sm:text-xs max-sm:w-[55px] max-sm:rounded-xl
                       hover:bg-customGreen2 hover:text-slate-900 transition duration-300"
+
                       defaultValue={objectStringify(selectedToken)}
                       onChange={(e) => {
                         setSelectedToken(objectParse(e.target.value));
@@ -283,6 +299,7 @@ export default function Swap() {
                 <input
                   type="number"
                   className="bg-transparent placeholder:text-slate-900 outline-none mb-6 w-full text-2xl"
+                  placeholder="You get"
                   value={(
                     Number(selectedTokenAmount) /
                     +formatBigNumberToNumber(

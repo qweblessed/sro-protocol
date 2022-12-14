@@ -51,7 +51,7 @@ const wagmiClient = createClient({
 });
 
 export const apolloClient = new ApolloClient({
-  uri: `https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2`,
+  uri: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
   cache: new InMemoryCache(),
 });
 
@@ -63,7 +63,13 @@ export default function App({ Component, pageProps }: AppProps) {
         <WagmiConfig client={wagmiClient}>
           <RainbowKitProvider
             chains={chains}
-            theme={midnightTheme()}
+            theme={midnightTheme({
+              accentColor: '#fffff',
+              accentColorForeground: 'fffff',
+              borderRadius: 'medium',
+              fontStack: 'system',
+              overlayBlur: 'small',
+            })}
             modalSize="compact"
           >
             <Layout>

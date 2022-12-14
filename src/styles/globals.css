@@ -89,7 +89,7 @@ a {
     }
   }
 
-  img.backgroundImg {
+  .backgroundImg img{
     position: absolute;
     z-index: -1;
     left: 0;
