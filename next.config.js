@@ -34,7 +34,7 @@ module.exports = {
       return [
         {
           source: "/",
-          destination: "/home",
+          destination: "/swap",
           permanent: false,
      
         }
