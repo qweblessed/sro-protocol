@@ -236,7 +236,7 @@ export default function Swap() {
           />
         ) : null}
         <h2 className="text-center text-slate-200 text-3xl font-semibold  max-sm:text-xl">
-          ERC20 To ETH Swap
+           ZRO ETH-less Swap
         </h2>
         <div className="flex justify-center items-center ">
           <div className="flex items-center justify-center font-mono w-screen mt-6">
@@ -246,10 +246,11 @@ export default function Swap() {
                 {loader ? <SwapLoader /> : null}
               </div>
               <div className="flex justify-between text-customGreen bg-slate-200 rounded-xl text-3xl border border-[#D4DBE5] my-3 p-6 w-[1/4] max-sm:p-2">
-                <div className="flex flex-col">
+                <div className="flex flex-col ">
                   <input
                     type="number"
-                    className="w-[90%] bg-transparent placeholder:text-customSkyBlue text-slate-900 outline-none text-2xl  max-sm:w-[56px]"
+                    placeholder="Enter"
+                    className="w-[90%] bg-transparent placeholder:text-slate-900 text-slate-900 outline-none text-2xl  max-sm:w-[56px]"
                     onChange={(e) =>
                       setSelectedTokenAmount(Number(e.target.value))
                     }
@@ -298,6 +299,7 @@ export default function Swap() {
                 <input
                   type="number"
                   className="bg-transparent placeholder:text-slate-900 outline-none mb-6 w-full text-2xl"
+                  placeholder="You get"
                   value={(
                     Number(selectedTokenAmount) /
                     +formatBigNumberToNumber(
