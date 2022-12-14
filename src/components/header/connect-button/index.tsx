@@ -36,7 +36,7 @@ export const CustomConnectButton = () => {
               {(() => {
                 if (!connected) {
                   return (
-                    <button onClick={openConnectModal} type="button" className="bg-slate-800 w-[8rem] h-[3rem] rounded-lg animate-pulse text-customGreen">
+                    <button onClick={openConnectModal} type="button" className="bg-slate-900 w-[10rem] h-[3.5rem] rounded-md hover:text-customGreen2 transition duration-400 animate-pulse text-customGreen max-sm:w-[8rem] h-[3rem]">
                       Connect Wallet
                     </button>
                   );
@@ -44,7 +44,7 @@ export const CustomConnectButton = () => {
   
                 if (chain.unsupported) {
                   return (
-                    <button onClick={openChainModal} type="button" className="bg-customRed w-[8rem] h-[3rem] rounded-lg animate-pulse">
+                    <button onClick={openChainModal} type="button" className="bg-customRed w-[10rem] h-[3.5rem] rounded-lg animate-pulse max-sm:w-[10rem] h-[3.5rem]">
                       Wrong network
                     </button>
                   );
@@ -54,7 +54,7 @@ export const CustomConnectButton = () => {
                   <div className="flex flex-col	">                      
                     <button
                       onClick={openChainModal}
-                      className="flex justify-center items-center bg-slate-800 w-[8rem] h-[2rem] rounded-lg text-customGreen "
+                      className="flex justify-center items-center bg-slate-800 w-[9rem] h-[3rem] rounded-lg text-customGreen "
                       type="button"
                     >
                       {chain.hasIcon && (
@@ -79,7 +79,7 @@ export const CustomConnectButton = () => {
                       )}                    
                       {chain.name}
                     </button>
-                    <button onClick={openAccountModal} type="button" className="bg-slate-800 w-[8rem] h-[2rem] rounded-lg mt-4 text-customGreen max-sm:mt-1">
+                    <button onClick={openAccountModal} type="button" className="bg-slate-800 w-[9rem] h-[3rem] rounded-lg mt-2 text-customGreen max-sm:mt-1 ">
                       {account.displayName}                     
                     </button>
 

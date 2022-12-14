@@ -25,28 +25,35 @@ import ApproveTokenModal from "../../components/ApproveTokenModal";
 import { UniswapV2Contract } from "../../lib/UniswapV2Contract-config";
 import ErrorModal from "../../components/ErrorTokenModal";
 import SwapLoader from "../../components/SwapLoader";
+import { defaultTokens } from "../../dummyData/dummyData";
 
 export default function Swap() {
   const { chain } = useNetwork();
   const { loading, error, data } = useQuery(PAIRS_QUERY);
   const { address } = useAccount();
   const [selectedTokenAmount, setSelectedTokenAmount] = useState<number>(0);
-  const [displayedTokens, setDisplayedTokens] = useState<Token[] | undefined>();
+  const [displayedTokens, setDisplayedTokens] = useState<Token[] >();
   const [selectedToken, setSelectedToken] = useState<Token>();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showApproveModal, setShowApproveModal] = useState<boolean>(false);
   const [errorModal, setErrorModal] = useState<boolean>(false);
+  const [loader, setLoader] = useState<boolean>(false);
   const [errorModalText, setErrorModalText] = useState<string>("");
   const [approveType, setApproveType] = useState<ApproveType>(2);
   const signer = useSigner().data;
-
+  
   const getTopLiquidTokens = async () => {
+    if(loading){
+      setDisplayedTokens(defaultTokens)
+      setLoader(true)
+    }
     if (!loading && !error) {
       const formattedTokens = data.pairs.map((item: TokensResponse) => {
         return item.token0;
       });
-      setSelectedToken(formattedTokens[0]);
+      setSelectedToken(formattedTokens.find((token:Token) => token.id == selectedToken?.id));
       setDisplayedTokens(formattedTokens);
+      setLoader(false)
     }
   };
 
@@ -188,13 +195,9 @@ export default function Swap() {
     getTopLiquidTokens();
   }, [loading]);
 
-  useEffect(() => {
-    getTopLiquidTokens();
-  }, [loading]);
-
   return (
-    <div className="flex justify-center mt-2 mb-2 ">
-      <div className="items-center w-[35%] p-5 h-[40rem] bg-gray-200 rounded-2xl shadow-sm shadow-customLightBlue mt-2 max-sm:w-[95%] opacity-90">
+    <div className="flex justify-center mt-2 mb-2 max-sm:mt-0">
+      <div className="items-center w-[28%] p-5 h-[40rem] bg-slate-900 rounded-2xl shadow-sm shadow-customLightBlue mt-2 max-sm:w-[95%]  max-sm:h-[32rem]">
         {showApproveModal ? (
           <ApproveTokenModal
             isSelectedTokenLoading={isTokenLoading}
@@ -218,7 +221,7 @@ export default function Swap() {
             setDisplayedTokens={setDisplayedTokens}
           />
         ) : null}
-        <h2 className="text-center text-slate-800 text-3xl font-semibold">
+        <h2 className="text-center text-slate-200 text-3xl font-semibold  max-sm:text-xl">
           ERC20 To ETH Swap
         </h2>
         <div className="flex justify-center items-center ">
@@ -226,7 +229,7 @@ export default function Swap() {
             <div className="bg-slate-800 w-[100%] rounded-xl shadow-xl p-4 max-sm:h-[90%]">
               <div className="flex items-center justify-between font-semibold text-xl text-customGreen px-2 ">
                 <h1>Swap</h1>
-                {!displayedTokens ? <SwapLoader /> : null}
+                {loader ? <SwapLoader /> : null}
               </div>
               <div className="flex justify-between text-customGreen bg-slate-200 rounded-xl text-3xl border border-[#D4DBE5] my-3 p-6 w-[1/4] max-sm:p-2">
                 <div className="flex flex-col">
@@ -249,7 +252,7 @@ export default function Swap() {
                   <div className="flex justify-end pr-1 max-sm:w-[1/4] max-sm:w-[55px] max-sm:h-[32px]">
                     <div
                       className="flex h-[39px] w-[91px] justify-center items-center bg-slate-800 rounded-xl text-lg cursor-pointer max-sm:text-xs max-sm:w-[55px] max-sm:rounded-xl max-sm:h-[32px] 
-                      hover:bg-green-500 hover:text-slate-900 transition duration-300"
+                      hover:bg-customGreen2 hover:text-slate-900 transition duration-300"
                       onClick={() => setShowModal(!showModal)}
                     >
                       Select
@@ -258,7 +261,7 @@ export default function Swap() {
                   <div className="flex justify-end pr-1">
                     <select
                       className="flex h-min items-center bg-slate-800 rounded-xl text-lg text-center cursor-pointer p-2 max-sm:text-xs max-sm:w-[55px] max-sm:rounded-xl
-                      hover:bg-green-500 hover:text-slate-900 transition duration-300"
+                      hover:bg-customGreen2 hover:text-slate-900 transition duration-300"
                       defaultValue={objectStringify(selectedToken)}
                       onChange={(e) => {
                         setSelectedToken(objectParse(e.target.value));
@@ -280,7 +283,6 @@ export default function Swap() {
                 <input
                   type="number"
                   className="bg-transparent placeholder:text-slate-900 outline-none mb-6 w-full text-2xl"
-                  placeholder="You GET"
                   value={(
                     Number(selectedTokenAmount) /
                     +formatBigNumberToNumber(
@@ -332,7 +334,8 @@ export default function Swap() {
                 </li>
               </ul>
               <div
-                className="flex items-center justify-center cursor-pointer border rounded-xl bg-customGreen text-xl text-slate-900 font-semibold my-2 py-6 px-8  hover:bg-green-400 transition duration-400"
+                className="flex items-center justify-center cursor-pointer border rounded-xl bg-customGreen text-xl text-slate-900 font-semibold my-2 py-6 px-8  hover:bg-customGreen2 
+                transition duration-400 max-sm:py-2 max-sm:mt-4 max-sm:px-2  max-sm:rounded-md"
                 onClick={() => {
                   if (selectedToken) {
                     swap(selectedToken);

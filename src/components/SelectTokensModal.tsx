@@ -18,7 +18,7 @@ const SelectTokensModal: FC<ModalProps> = ({
   }
 
   return (
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 z-2 border rounded-xl w-[26rem] max-sm:w-[20rem]">
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 z-10 border rounded-xl w-[26rem] max-sm:w-[20rem] max-sm:h-[42rem] max-sm:top-[26rem] max-sm:z-30">
       <div className="flex justify-between m-4 ">
         <div>
           <h2 className="text-customGreen">Select a token</h2>
@@ -83,7 +83,7 @@ const SelectTokensModal: FC<ModalProps> = ({
       </div>
       <div className="flex justify-center mt-5 mb-2 ">
         <button
-          className="w-[200px]  rounded bg-customGreen text-slate-800 font-semibold  hover:bg-green-400 transition duration-300"
+          className="w-[200px] rounded bg-customGreen text-slate-800 font-semibold  hover:bg-customGreen2 transition duration-300"
           onClick={() => {
             setShowModal(false);
           }}

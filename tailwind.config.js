@@ -12,7 +12,8 @@ module.exports = {
         'customSkyBlue':'#05D9E8',
         'customBlue':'#005678',
         'customDeepBlue':'#01012B',
-        'customGreen':'#3CCF4E',
+        'customGreen2':'#41ff91',
+        'customGreen':'#07d6e1',
         'customPaleBlue':'#C0EEE4'        
       },
       backgroundImage: {
