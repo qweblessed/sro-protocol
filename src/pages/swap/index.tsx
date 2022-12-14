@@ -196,8 +196,8 @@ export default function Swap() {
   }, [loading]);
 
   return (
-    <div className="flex justify-center mt-2 mb-2 ">
-      <div className="items-center w-[28%] p-5 h-[40rem] bg-slate-900 rounded-2xl shadow-sm shadow-customLightBlue mt-2 max-sm:w-[95%]  max-sm:h-[36rem]">
+    <div className="flex justify-center mt-2 mb-2 max-sm:mt-0">
+      <div className="items-center w-[28%] p-5 h-[40rem] bg-slate-900 rounded-2xl shadow-sm shadow-customLightBlue mt-2 max-sm:w-[95%]  max-sm:h-[32rem]">
         {showApproveModal ? (
           <ApproveTokenModal
             isSelectedTokenLoading={isTokenLoading}
@@ -335,7 +335,7 @@ export default function Swap() {
               </ul>
               <div
                 className="flex items-center justify-center cursor-pointer border rounded-xl bg-customGreen text-xl text-slate-900 font-semibold my-2 py-6 px-8  hover:bg-customGreen2 
-                transition duration-400 max-sm:py-2 max-sm:mt-1 max-sm:px-2  max-sm:rounded-md"
+                transition duration-400 max-sm:py-2 max-sm:mt-4 max-sm:px-2  max-sm:rounded-md"
                 onClick={() => {
                   if (selectedToken) {
                     swap(selectedToken);
