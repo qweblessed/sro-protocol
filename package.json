@@ -1,4 +1,7 @@
 {
+  "resolutions": {
+    "ethereumjs-abi": "https://registry.npmjs.org/ethereumjs-abi/-/ethereumjs-abi-0.6.8.tgz"
+  },
   "name": "dapp-template-v2",
   "version": "0.1.0",
   "private": true,
