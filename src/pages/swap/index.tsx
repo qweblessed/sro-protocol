@@ -249,7 +249,7 @@ export default function Swap() {
                 <div className="flex flex-col ">
                   <input
                     type="number"
-                    placeholder="Enter"
+                    placeholder="0"
                     className="w-[90%] bg-transparent placeholder:text-slate-900 text-slate-900 outline-none text-2xl  max-sm:w-[56px]"
                     onChange={(e) =>
                       setSelectedTokenAmount(Number(e.target.value))
@@ -299,7 +299,7 @@ export default function Swap() {
                 <input
                   type="number"
                   className="bg-transparent placeholder:text-slate-900 outline-none mb-6 w-full text-2xl"
-                  placeholder="You get"
+                  placeholder="0"
                   value={(
                     Number(selectedTokenAmount) /
                     +formatBigNumberToNumber(
