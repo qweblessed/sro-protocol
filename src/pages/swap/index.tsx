@@ -298,13 +298,13 @@ export default function Swap() {
                 <input
                   type="number"
                   className="bg-transparent placeholder:text-slate-900 outline-none mb-6 w-full text-2xl"
-                  // value={(
-                  //   Number(selectedTokenAmount) /
-                  //   +formatBigNumberToNumber(
-                  //     tokenValue as BigNumber[],
-                  //     selectedToken?.decimals
-                  //   )
-                  // ).toFixed(3)}
+                  value={(
+                    Number(selectedTokenAmount) /
+                    +formatBigNumberToNumber(
+                      tokenValue as BigNumber[],
+                      selectedToken?.decimals
+                    )
+                  ).toFixed(3)}
                   disabled
                 />
 
@@ -327,7 +327,7 @@ export default function Swap() {
               <ul className="text-center max-sm:text-sm">
                 <li>
                   1 ETH ={" "}
-                  {/* {(+formatBigNumberToNumber(
+                  {(+formatBigNumberToNumber(
                     tokenValue as BigNumber[],
                     selectedToken?.decimals
                   )).toFixed(2)}{" "}
@@ -345,7 +345,7 @@ export default function Swap() {
                   {(+weiToEth(
                     totalBurned as BigNumber,
                     selectedToken?.decimals
-                  )).toFixed(2)} */}
+                  )).toFixed(2)}
                 </li>
               </ul>
               <div
